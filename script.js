@@ -1,43 +1,86 @@
-var audio = document.getElementById('audio');
-var playPauseBtn = document.getElementById('playPause');
-var volumeSlider = document.getElementById('volume');
-var progressSlider = document.getElementById('progress');
-var timeDisplay = document.getElementById('time');
-var isPlaying = false;
-playPauseBtn.addEventListener('click', function () {
-    if (isPlaying) {
-        audio.pause();
-        playPauseBtn.textContent = '▶️';
+document.addEventListener('DOMContentLoaded', () => {
+    const audio = document.getElementById('audio');
+    const playPauseBtn = document.getElementById('playPause');
+    const progressSlider = document.getElementById('progress');
+    const timeDisplay = document.getElementById('time');
+
+    if (!audio || !playPauseBtn || !progressSlider || !timeDisplay) {
+        console.error('Required elements not found');
+        return;
     }
-    else {
-        audio.play();
-        playPauseBtn.textContent = '⏸️';
+
+    /* ---------------- PLAY / PAUSE ---------------- */
+
+    playPauseBtn.addEventListener('click', () => {
+        if (audio.paused) {
+            audio.play().catch(err => console.error(err));
+        } else {
+            audio.pause();
+        }
+    });
+
+    audio.addEventListener('play', () => {
+        playPauseBtn.textContent = '⏸';
+    });
+
+    audio.addEventListener('pause', () => {
+        playPauseBtn.textContent = '▶';
+    });
+
+    audio.addEventListener('ended', () => {
+        playPauseBtn.textContent = '▶';
+        progressSlider.value = 0;
+        updateTimeDisplay();
+    });
+
+    /* ---------------- SEEK BAR ---------------- */
+
+    // Seek when user drags slider
+    progressSlider.addEventListener('input', () => {
+        if (!audio.duration) return;
+
+        const seekTime = (progressSlider.value / 100) * audio.duration;
+        audio.currentTime = seekTime;
+        updateTimeDisplay();
+    });
+
+    // Update slider while audio plays
+    audio.addEventListener('timeupdate', () => {
+        if (!audio.duration) return;
+
+        const progress = (audio.currentTime / audio.duration) * 100;
+        progressSlider.value = progress;
+        updateTimeDisplay();
+    });
+
+    /* ---------------- METADATA ---------------- */
+
+    audio.addEventListener('loadedmetadata', () => {
+        progressSlider.value = 0;
+        updateTimeDisplay();
+    });
+
+    audio.addEventListener('error', () => {
+        timeDisplay.textContent = 'Error loading audio';
+    });
+
+    /* ---------------- HELPERS ---------------- */
+
+    function updateTimeDisplay() {
+        if (!audio.duration || isNaN(audio.duration)) {
+            timeDisplay.textContent = '0:00 / 0:00';
+            return;
+        }
+
+        const current = formatTime(audio.currentTime);
+        const total = formatTime(audio.duration);
+        timeDisplay.textContent = `${current} / ${total}`;
     }
-    isPlaying = !isPlaying;
+
+    function formatTime(seconds) {
+        if (isNaN(seconds) || seconds === Infinity) return '0:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
 });
-volumeSlider.addEventListener('input', function () {
-    audio.volume = parseFloat(volumeSlider.value);
-});
-progressSlider.addEventListener('input', function () {
-    var seekTime = (parseFloat(progressSlider.value) / 100) * audio.duration;
-    audio.currentTime = seekTime;
-});
-audio.addEventListener('timeupdate', function () {
-    var progress = (audio.currentTime / audio.duration) * 100;
-    progressSlider.value = progress.toString();
-    updateTimeDisplay();
-});
-audio.addEventListener('loadedmetadata', function () {
-    updateTimeDisplay();
-});
-function updateTimeDisplay() {
-    var currentTime = formatTime(audio.currentTime);
-    var duration = formatTime(audio.duration);
-    timeDisplay.textContent = "".concat(currentTime, " / ").concat(duration);
-}
-function formatTime(seconds) {
-    var mins = Math.floor(seconds / 60);
-    var secs = Math.floor(seconds % 60);
-    var secsStr = secs < 10 ? '0' + secs : secs.toString();
-    return "".concat(mins, ":").concat(secsStr);
-}
