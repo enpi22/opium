@@ -1,0 +1,24 @@
+{
+  "name": "opium",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/enpi22/opium.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/enpi22/opium/issues"
+  },
+  "homepage": "https://github.com/enpi22/opium#readme",
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
